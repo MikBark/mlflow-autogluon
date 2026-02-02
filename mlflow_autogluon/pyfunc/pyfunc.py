@@ -7,6 +7,7 @@ to be used with mlflow.pyfunc.load_model() for standardized inference.
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pandas as pd
@@ -129,6 +130,40 @@ class AutoGluonModelWrapper(PythonModel):
         return self._model.predict_multi(model_input)
 
 
+class _PyFuncWrapper:
+    """Simple wrapper for MLflow PyFunc loading.
+
+    This class provides the predict(data, params=None) signature expected
+    by MLflow's internal pyfunc loader, delegating to AutoGluonModelWrapper.
+    """
+
+    def __init__(self, path: str) -> None:
+        """Initialize the wrapper.
+
+        Args:
+            path: Path to saved model directory
+        """
+        self._wrapper = AutoGluonModelWrapper(path)
+
+    def predict(
+        self,
+        data: pd.DataFrame | dict[str, Any],
+        params: dict[str, Any] | None = None,
+    ) -> pd.DataFrame | dict[str, Any] | list[Any]:
+        """
+        Generate predictions using the AutoGluon model.
+
+        Args:
+            data: Input data as pandas DataFrame or dict
+            params: Optional prediction parameters
+
+        Returns:
+            Predictions as DataFrame, dict, or list depending on params
+        """
+        context = SimpleNamespace(artifacts=self._wrapper._model_path)
+        return self._wrapper.predict(context, data, params)
+
+
 def _load_pyfunc(path: str) -> Any:
     """
     Load AutoGluon model as PyFunc.
@@ -141,4 +176,4 @@ def _load_pyfunc(path: str) -> Any:
     Returns:
         PyFunc-compatible wrapper instance
     """
-    return AutoGluonModelWrapper(path)
+    return _PyFuncWrapper(path)
