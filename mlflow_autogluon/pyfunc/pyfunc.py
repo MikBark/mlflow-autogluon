@@ -127,3 +127,18 @@ class AutoGluonModelWrapper(PythonModel):
             as_multiclass = params.get('as_multiclass', False)
             return self._model.predict_proba(model_input, as_multiclass=as_multiclass)
         return self._model.predict_multi(model_input)
+
+
+def _load_pyfunc(path: str) -> Any:
+    """
+    Load AutoGluon model as PyFunc.
+
+    This is used internally by MLflow when loading model with pyfunc flavor.
+
+    Args:
+        path: Local path to model directory
+
+    Returns:
+        PyFunc-compatible wrapper instance
+    """
+    return AutoGluonModelWrapper(path)
