@@ -10,7 +10,6 @@ from mlflow.models import Model
 
 from mlflow_autogluon.constants import AUTODEPLOY_SUBPATH, FLAVOR_NAME
 from mlflow_autogluon.literals import ModelTypeLiteral
-from mlflow_autogluon.pyfunc.pyfunc import AutoGluonModelWrapper
 
 
 def load_model(
@@ -42,21 +41,6 @@ def load_model(
 
     loader = get_model_loader(model_type)
     return loader(autogluon_model_path)
-
-
-def _load_pyfunc(path: str) -> Any:
-    """
-    Load AutoGluon model as PyFunc.
-
-    This is used internally by MLflow when loading model with pyfunc flavor.
-
-    Args:
-        path: Local path to model directory
-
-    Returns:
-        PyFunc-compatible wrapper instance
-    """
-    return AutoGluonModelWrapper(path)
 
 
 def get_model_loader(model_type: ModelTypeLiteral) -> Any:

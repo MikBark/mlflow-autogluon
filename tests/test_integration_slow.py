@@ -7,7 +7,6 @@ Marked with @pytest.mark.slow for opt-out in CI/CD.
 
 import mlflow
 import pytest
-from mlflow.pyfunc import load_model as load_pyfunc
 
 import mlflow_autogluon
 from tests.utils import get_model_fixtures, get_model_predictions, get_pyfunc_input
@@ -31,7 +30,6 @@ def test_full_lifecycle_train_log_load_predict(model_type, mlflow_tracking_uri, 
     assert model_info.model_uri.startswith('runs:/')
 
     loaded_model = mlflow_autogluon.load_model(model_info.model_uri)
-    assert loaded_model is not None
 
     predictions = get_model_predictions(loaded_model, model_type, data_fixture)
     assert predictions is not None
@@ -53,8 +51,7 @@ def test_pyfunc_wrapper_with_real_model(model_type, mlflow_tracking_uri, request
             model_type=model_type,
         )
 
-    pyfunc_model = load_pyfunc(model_info.model_uri)
-    assert pyfunc_model is not None
+    pyfunc_model = mlflow.pyfunc.load_model(model_info.model_uri)
 
     input_data = get_pyfunc_input(model_type, data_fixture)
     predictions = pyfunc_model.predict(input_data)
