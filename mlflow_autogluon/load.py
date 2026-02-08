@@ -43,6 +43,30 @@ def load_model(
     return loader(autogluon_model_path)
 
 
+def _load_model_from_local_path(local_model_path: str | Path) -> Any:
+    """Load AutoGluon model from local path without download_artifacts().
+
+    This function loads a model that is already on local filesystem,
+    without calling download_artifacts(). Used by PyFunc wrapper
+    when the model is already downloaded.
+
+    Args:
+        local_model_path: Local path to model directory
+
+    Returns:
+        Loaded AutoGluon model instance
+
+    Raises:
+        ValueError: If model cannot be loaded or flavor configuration is invalid
+    """
+    model = Model.load(local_model_path)
+    flavor_conf = model.flavors[FLAVOR_NAME]
+    model_type = flavor_conf.get('model_type', 'tabular')
+    autogluon_model_path = Path(local_model_path) / AUTODEPLOY_SUBPATH
+    loader = get_model_loader(model_type)
+    return loader(autogluon_model_path)
+
+
 def get_model_loader(model_type: ModelTypeLiteral) -> Any:
     """Get the loader function for the given model type.
 

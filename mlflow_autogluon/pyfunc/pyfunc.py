@@ -14,6 +14,7 @@ import pandas as pd
 from mlflow.pyfunc import PythonModel
 
 from mlflow_autogluon.literals import PredictMethodLiteral
+from mlflow_autogluon.load import _load_model_from_local_path, load_model
 from mlflow_autogluon.pyfunc.input_parser import parse_input
 from mlflow_autogluon.pyfunc.output_formatter import format_output
 
@@ -39,7 +40,7 @@ class AutoGluonModelWrapper(PythonModel):
         if autogluon_model is not None:
             self._model = autogluon_model
         elif path is not None:
-            self._model_path = path
+            self.model_path = path
             self._model = None
         else:
             raise ValueError('Either path or autogluon_model must be provided')
@@ -53,10 +54,14 @@ class AutoGluonModelWrapper(PythonModel):
             context: MLflow context containing artifact path
         """
         if self._model is None:
-            from mlflow_autogluon.load import load_model  # noqa: WPS433
-
             model_path = getattr(context, 'artifacts', self._model_path)
-            self._model = load_model(model_path)
+            path_obj = Path(model_path)
+
+            # Check if local path with MLmodel file - load directly
+            if (path_obj / 'MLmodel').exists():
+                self._model = _load_model_from_local_path(model_path)
+            else:
+                self._model = load_model(model_path)
 
     def predict(
         self,
@@ -160,7 +165,7 @@ class _PyFuncWrapper:
         Returns:
             Predictions as DataFrame, dict, or list depending on params
         """
-        context = SimpleNamespace(artifacts=self._wrapper._model_path)
+        context = SimpleNamespace(artifacts=self._wrapper.model_path)
         return self._wrapper.predict(context, data, params)
 
 
