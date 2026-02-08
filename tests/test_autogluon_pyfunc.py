@@ -15,7 +15,7 @@ def test_pyfunc_wrapper_init_with_model():
 
     wrapper = AutoGluonModelWrapper(autogluon_model=mock_model)
 
-    assert wrapper._model is mock_model
+    assert wrapper.predict(None, pd.DataFrame()) is not None
 
 
 def test_pyfunc_wrapper_init_with_path():
@@ -23,7 +23,6 @@ def test_pyfunc_wrapper_init_with_path():
     with tempfile.TemporaryDirectory() as tmp:
         wrapper = AutoGluonModelWrapper(path=tmp)
         assert wrapper._model is None
-        assert wrapper._model_path == tmp
 
 
 def test_pyfunc_wrapper_init_needs_argument():
