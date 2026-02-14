@@ -34,6 +34,12 @@ def sample_data():
 
 
 @pytest.fixture
+def mock_test_data():
+    """Provide mock test data list for unit tests."""
+    return [1, 2, 3]
+
+
+@pytest.fixture
 def sample_tabular_data():
     """Generate small synthetic tabular dataset."""
     try:
