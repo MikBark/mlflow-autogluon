@@ -40,7 +40,7 @@ class AutoGluonModelWrapper(PythonModel):
         if autogluon_model is not None:
             self._model = autogluon_model
         elif path is not None:
-            self.model_path = path
+            self._model_path = path
             self._model = None
         else:
             raise ValueError('Either path or autogluon_model must be provided')
@@ -165,7 +165,7 @@ class _PyFuncWrapper:
         Returns:
             Predictions as DataFrame, dict, or list depending on params
         """
-        context = SimpleNamespace(artifacts=self._wrapper.model_path)
+        context = SimpleNamespace(artifacts=self._wrapper._model_path)
         return self._wrapper.predict(context, data, params)
 
 

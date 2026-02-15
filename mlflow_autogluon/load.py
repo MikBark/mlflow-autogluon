@@ -29,6 +29,11 @@ def load_model(
     Raises:
         ValueError: If model cannot be loaded or flavor configuration is invalid
     """
+    # If model_uri points to a local directory, load directly without calling MLflow download_artifacts
+    p = Path(model_uri)
+    if p.exists() and p.is_dir():
+        return _load_model_from_local_path(p)
+
     local_model_path = download_artifacts(artifact_uri=model_uri, dst_path=dst_path)
 
     model = Model.load(local_model_path)

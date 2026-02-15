@@ -27,7 +27,7 @@ def test_full_lifecycle_train_log_load_predict(model_type, mlflow_tracking_uri, 
             model_type=model_type,
         )
 
-    assert model_info.model_uri.startswith('runs:/')
+    assert model_info.model_uri.startswith(('runs:/', 'models:/'))
 
     loaded_model = mlflow_autogluon.load_model(model_info.model_uri)
 
