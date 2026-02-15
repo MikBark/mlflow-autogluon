@@ -45,6 +45,15 @@ class AutoGluonModelWrapper(PythonModel):
         else:
             raise ValueError('Either path or autogluon_model must be provided')
 
+    @property
+    def model_path(self) -> str | Path:
+        """Get the model path.
+
+        Returns:
+            The path to the model directory
+        """
+        return self._model_path
+
     def load_context(self, context: Any) -> None:
         """Load the AutoGluon model from the artifact path.
 
@@ -165,7 +174,7 @@ class _PyFuncWrapper:
         Returns:
             Predictions as DataFrame, dict, or list depending on params
         """
-        context = SimpleNamespace(artifacts=self._wrapper._model_path)
+        context = SimpleNamespace(artifacts=self._wrapper.model_path)
         return self._wrapper.predict(context, data, params)
 
 
