@@ -7,12 +7,14 @@ to be used with mlflow.pyfunc.load_model() for standardized inference.
 from __future__ import annotations
 
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
 import pandas as pd
 from mlflow.pyfunc import PythonModel
 
 from mlflow_autogluon.literals import PredictMethodLiteral
+from mlflow_autogluon.load import _load_model_from_local_path, load_model
 from mlflow_autogluon.pyfunc.input_parser import parse_input
 from mlflow_autogluon.pyfunc.output_formatter import format_output
 
@@ -43,6 +45,15 @@ class AutoGluonModelWrapper(PythonModel):
         else:
             raise ValueError('Either path or autogluon_model must be provided')
 
+    @property
+    def model_path(self) -> str | Path:
+        """Get the model path.
+
+        Returns:
+            The path to the model directory
+        """
+        return self._model_path
+
     def load_context(self, context: Any) -> None:
         """Load the AutoGluon model from the artifact path.
 
@@ -52,10 +63,14 @@ class AutoGluonModelWrapper(PythonModel):
             context: MLflow context containing artifact path
         """
         if self._model is None:
-            from mlflow_autogluon.load import load_model  # noqa: WPS433
-
             model_path = getattr(context, 'artifacts', self._model_path)
-            self._model = load_model(model_path)
+            path_obj = Path(model_path)
+
+            # Check if local path with MLmodel file - load directly
+            if (path_obj / 'MLmodel').exists():
+                self._model = _load_model_from_local_path(model_path)
+            else:
+                self._model = load_model(model_path)
 
     def predict(
         self,
@@ -127,3 +142,52 @@ class AutoGluonModelWrapper(PythonModel):
             as_multiclass = params.get('as_multiclass', False)
             return self._model.predict_proba(model_input, as_multiclass=as_multiclass)
         return self._model.predict_multi(model_input)
+
+
+class _PyFuncWrapper:
+    """Simple wrapper for MLflow PyFunc loading.
+
+    This class provides the predict(data, params=None) signature expected
+    by MLflow's internal pyfunc loader, delegating to AutoGluonModelWrapper.
+    """
+
+    def __init__(self, path: str) -> None:
+        """Initialize the wrapper.
+
+        Args:
+            path: Path to saved model directory
+        """
+        self._wrapper = AutoGluonModelWrapper(path)
+
+    def predict(
+        self,
+        data: pd.DataFrame | dict[str, Any],
+        params: dict[str, Any] | None = None,
+    ) -> pd.DataFrame | dict[str, Any] | list[Any]:
+        """
+        Generate predictions using the AutoGluon model.
+
+        Args:
+            data: Input data as pandas DataFrame or dict
+            params: Optional prediction parameters
+
+        Returns:
+            Predictions as DataFrame, dict, or list depending on params
+        """
+        context = SimpleNamespace(artifacts=self._wrapper.model_path)
+        return self._wrapper.predict(context, data, params)
+
+
+def _load_pyfunc(path: str) -> Any:
+    """
+    Load AutoGluon model as PyFunc.
+
+    This is used internally by MLflow when loading model with pyfunc flavor.
+
+    Args:
+        path: Local path to model directory
+
+    Returns:
+        PyFunc-compatible wrapper instance
+    """
+    return _PyFuncWrapper(path)

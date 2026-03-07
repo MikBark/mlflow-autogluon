@@ -74,3 +74,5 @@ dmypy.json
 .ruff_cache/
 
 .claude
+
+.sisyphus/

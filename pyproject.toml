@@ -202,4 +202,5 @@ per-file-ignores = [
     "mlflow_autogluon/save.py: WPS201, WPS202, WPS213",  # save_model: complex but organized helper flow, 8 module members
     "mlflow_autogluon/log.py: WPS211, WPS213, WPS237",  # log_model: necessary for MLflow logging
     "mlflow_autogluon/pyfunc/pyfunc.py: WPS237",  # complex f-strings for error messages
+    "tests/**: F",  # tests: disable flake8 for test directory
 ]

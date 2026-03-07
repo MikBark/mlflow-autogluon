@@ -1,6 +1,4 @@
-"""
-Test utilities for MLflow-AutoGluon tests.
-"""
+"""Test utilities for MLflow-AutoGluon tests."""
 
 
 def get_model_fixtures(model_type: str, request):
@@ -23,6 +21,8 @@ def get_model_predictions(model, model_type: str, data_fixture):
         return model.predict(str(test_dir))
 
 
+# TODO: Replace the pyfunc input with a fixture everywhere.
+# Use pytest-lazy-fixtures==1.1.2
 def get_pyfunc_input(model_type: str, data_fixture):
     """Get input data for PyFunc prediction based on model type."""
     if model_type == 'tabular':
