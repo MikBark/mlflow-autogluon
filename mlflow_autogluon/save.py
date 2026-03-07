@@ -193,14 +193,9 @@ def _save_tabular_model(
         autogluon_model: TabularPredictor instance
         autogluon_model_path: Path where model should be saved
     """
-    temp_save_path = autogluon_model_path.parent / 'temp_autogluon_save'
-    temp_save_path.mkdir(parents=True, exist_ok=True)
-
-    autogluon_model.save(str(temp_save_path))
-
     if autogluon_model_path.exists():
         shutil.rmtree(autogluon_model_path)
-    shutil.move(str(temp_save_path), str(autogluon_model_path))
+    autogluon_model.save(str(autogluon_model_path))
 
 
 def _write_metadata(
